@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
     }
 
     bool filePathBool = false;
+    filePath = "";
     str = malloc(strlen(argv[1]) * sizeof(char));
     for(j = 0; j < strlen(argv[1]); j++){
         str[j] = argv[1][j+7+strlen(host)];
@@ -121,11 +122,11 @@ int error(int errorCode) {
         exit(0);
         break;
     case 1 :
-        fprintf(stdout, "Invalid Protocol - Use ftp or http\n"); 
+        fprintf(stdout, "invalid protocol - use ftp\n"); 
         exit(1);
         break;
     case 2 :
-        fprintf(stdout, "Hostname Error\n");
+        fprintf(stdout, "invalid hostname\n");
         exit(2);
         break;
     case 3:
@@ -135,8 +136,10 @@ int error(int errorCode) {
         fprintf(stdout, "error connecting to server socket\n");
         exit(4);
     case 5:
+        fprintf(stdout, "requested directory does not exist\n");
         exit(5);
     case 6:
+        fprintf(stdout, "requested file does not exist\n");
         exit(6);
     case 7:
         fprintf(stdout, "error establishing data socket\n");
@@ -175,7 +178,6 @@ int handleConnection(int sockfd, char *hostname, char *fileName, bool filePathBo
     write(sockfd, request, strlen(request));
     getLine(sockfd, reply, replyLimit);
     if(reply[0] != '2') {
-        printf("%s\n", reply); 
         error(5);
         }
     }    
@@ -194,7 +196,6 @@ int handleConnection(int sockfd, char *hostname, char *fileName, bool filePathBo
     write(sockfd, request, strlen(request));
     getLine(sockfd, reply, replyLimit);
     if(reply[0] != '1') {
-        printf("%s\n", reply);
         error(6);
     }
    
@@ -202,8 +203,9 @@ int handleConnection(int sockfd, char *hostname, char *fileName, bool filePathBo
     getLine(datafd, reply, replyLimit);    
     FILE *fp = fopen(fileName, "ab+");
     fprintf(fp, "%s", reply);
-
     fclose(fp);
+    close(datafd);
+    printf("file saved -exiting\n");
     return 0;
 }
 
@@ -219,7 +221,6 @@ int getLine(int fd, char* line, int charLim) {
         line[count++] = '\0';
         return 0;
     }
-
     return 0;
 }         
 
